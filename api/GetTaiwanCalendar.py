@@ -6,6 +6,7 @@ import os
 from io import StringIO
 from flask import Flask, Response
 from urllib.parse import unquote
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -58,7 +59,7 @@ def extract_year_from_url(url):
         return None
 
 def fetch_calendar_data(year=None):
-    """獲取日曆資料，若指定年份則返回該年份，否則返回最新年份"""
+    """獲取日曆資料，若指定年份則返回該年份，否則使用當前年份"""
     # 本地：檢查 JSON 檔案
     if year and not os.getenv("VERCEL"):
         json_file = f"{year}yearCalendar.json"
@@ -76,8 +77,13 @@ def fetch_calendar_data(year=None):
     # 載入網址列表
     url_dict = load_url_cache()
 
-    # 如果指定年份且網址存在，直接使用
-    if year and year in url_dict:
+    # 計算當前年份（若未指定）
+    if not year:
+        current_year = datetime.now().year
+        year = str(current_year - 1911)  # 例如 2025 - 1911 = 114
+
+    # 如果年份在網址列表中，直接使用
+    if year in url_dict:
         target_url = url_dict[year]
     else:
         # 呼叫 API 更新網址列表
@@ -126,14 +132,10 @@ def fetch_calendar_data(year=None):
         save_url_cache(url_year_pairs)
         url_dict = {year: url for url, year in url_year_pairs}
 
-        # 選擇目標 URL
-        if year:
-            target_url = url_dict.get(year)
-            if not target_url:
-                return {"error": f"No calendar found for year {year}"}, 404
-        else:
-            # 選擇最新年份
-            target_url, year = max(url_year_pairs, key=lambda x: int(x[1]))
+        # 檢查目標年份
+        target_url = url_dict.get(year)
+        if not target_url:
+            return {"error": f"No calendar found for year {year}"}, 404
 
     # 檢查日曆快取
     if year in calendar_cache:
