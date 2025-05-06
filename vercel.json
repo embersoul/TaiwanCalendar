@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/GetTaiwanCalendar.py",
+      "use": "@vercel/python",
+      "config": { "pythonVersion": "3.12" }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/taiwan-calendar(/(.*))?",
+      "dest": "api/GetTaiwanCalendar.py"
+    }
+  ]
+}
