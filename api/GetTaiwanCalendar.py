@@ -60,6 +60,11 @@ def extract_year_from_url(url):
 
 def fetch_calendar_data(year=None):
     """獲取日曆資料，若指定年份則返回該年份，否則使用當前年份"""
+    # 先決定目標年份，避免本地模式在未帶年份時跳過現有 JSON 檔。
+    if not year:
+        current_year = datetime.now().year
+        year = str(current_year - 1911)  # 例如 2025 - 1911 = 114
+
     # 本地：檢查 JSON 檔案
     if year and not os.getenv("VERCEL"):
         json_file = f"{year}yearCalendar.json"
@@ -76,11 +81,6 @@ def fetch_calendar_data(year=None):
 
     # 載入網址列表
     url_dict = load_url_cache()
-
-    # 計算當前年份（若未指定）
-    if not year:
-        current_year = datetime.now().year
-        year = str(current_year - 1911)  # 例如 2025 - 1911 = 114
 
     # 如果年份在網址列表中，直接使用
     if year in url_dict:
